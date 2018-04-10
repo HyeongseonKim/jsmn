@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../jsmn.h"
-
+# SW 수업 너무 어렵다..
 /*
  * A small example of jsmn parsing when JSON structure is known and number of
  * tokens is predictable.
