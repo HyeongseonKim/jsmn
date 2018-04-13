@@ -10,8 +10,10 @@ static jsmntok_t *jsmn_alloc_token(jsmn_parser *parser,
 		return NULL;
 	}
 	tok = &tokens[parser->toknext++];
+	// unused tokens array provide address to tok, memory allocation
 	tok->start = tok->end = -1;
 	tok->size = 0;
+		// initialize token
 #ifdef JSMN_PARENT_LINKS
 	tok->parent = -1;
 #endif
@@ -154,11 +156,11 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 	int i;
 	jsmntok_t *token;
 	int count = parser->toknext;
+	char c;
+	jsmntype_t type;
 
 	for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
-		char c;
-		jsmntype_t type;
-
+	// read the jsmn string until string end and increase paser's pos value
 		c = js[parser->pos];
 		switch (c) {
 			case '{': case '[':
@@ -167,6 +169,8 @@ int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
 					break;
 				}
 				token = jsmn_alloc_token(parser, tokens, num_tokens);
+				// jsmntok_t token memory allocation
+				// jsmn_alloc_token()
 				if (token == NULL)
 					return JSMN_ERROR_NOMEM;
 				if (parser->toksuper != -1) {
@@ -311,4 +315,3 @@ void jsmn_init(jsmn_parser *parser) {
 	parser->toknext = 0;
 	parser->toksuper = -1;
 }
-
