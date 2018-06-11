@@ -8,9 +8,6 @@
  * tokens is predictable.
  */
 
-static const char *JSON_STRING =
-	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
-	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
 
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 	if (tok->type == JSMN_STRING && (int) strlen(s) == tok->end - tok->start &&
@@ -20,13 +17,36 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 	return -1;
 }
 
+char* readjsonfile(const char* filename) {
+
+	FILE* fp = fopen(filename, "r");
+	int memsize = 100;
+	char* Str = (char*)malloc(sizeof(char)*memsize);
+	char* Tmp;
+
+	while (!feof(fp)) {
+
+		fscanf(fp, "%s", Tmp);
+
+		if ( memsize > strlen(Str) + strlen(Tmp))
+		{
+			memsize *= 2;
+				Str = (char*)realloc(Str, sizeof(char) * memsize);
+		}
+		strcat(Str, Tmp);
+	}
+	return Str;
+}
+
 int main() {
 	int i;
 	int r;
 	jsmn_parser p;
 	jsmntok_t t[128]; /* We expect no more than 128 tokens */
-
 	jsmn_init(&p);
+
+	char* JSON_STRING = readjsonfile("data.json");
+
 	r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
 	if (r < 0) {
 		printf("Failed to parse JSON: %d\n", r);
