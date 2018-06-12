@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../jsmn.h"
+#include "../jsmn.c"
 // SW 수업 너무 어렵다..
 /*
  * A small example of jsmn parsing when JSON structure is known and number of
@@ -20,21 +21,35 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 char* readjsonfile(const char* filename) {
 
 	FILE* fp = fopen(filename, "r");
-	int memsize = 100;
+	FILE* fp1 = fopen("Example.txt", "w");
+	int memsize = 400;
 	char* Str = (char*)malloc(sizeof(char)*memsize);
-	char* Tmp;
+	char* Tmp = (char*)malloc(sizeof(char)*memsize);
 
-	while (!feof(fp)) {
 
-		fscanf(fp, "%s", Tmp);
+	if(fp == NULL) {
+					 perror("fopen");
+					 exit(1);
+			 }
 
-		if ( memsize > strlen(Str) + strlen(Tmp))
+
+
+	while (fscanf(fp,"%s\n",Tmp) != EOF) {
+
+		if ( memsize < strlen(Str) + strlen(Tmp))
 		{
-			memsize *= 2;
-				Str = (char*)realloc(Str, sizeof(char) * memsize);
+				memsize *= 2;
+				Str = (char*)realloc(Str,  memsize);
 		}
+
 		strcat(Str, Tmp);
+
+		//printf("%s",Str);
+			//printf("\n");
 	}
+	printf("%s",Str);
+	Str = "{\"user\":\"johndoe\"}";
+	//printf("%s",Str);
 	return Str;
 }
 
