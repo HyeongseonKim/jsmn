@@ -1,0 +1,10 @@
+{
+"name": "Coke",
+"price": 1000,
+"brand": "Coca Cola",
+"spec": {"PET", "250ml"},
+"name": "orange juice",
+"price": 2000,
+"brand": "Delmont",
+"spec": {"Pack", "180ml"}
+}

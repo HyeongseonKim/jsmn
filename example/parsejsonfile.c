@@ -20,7 +20,7 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 char* readjsonfile(const char* filename) {
 
 	FILE* fp = fopen(filename, "r");
-	int memsize = 60;
+	int memsize = 64;
 	char* Str = (char*)malloc(sizeof(char)*memsize);
 	char* Tmp = (char*)malloc(sizeof(char)*memsize);
 
@@ -46,11 +46,11 @@ char* readjsonfile(const char* filename) {
 	return Str;
 }
 
-char* substring(char part[], int start, int end) {
+char* substring(const char *part, int start, int end) {
 
 	int count = 0;
 	int length = end - start + 1;
-	char* temp = (char*)malloc(sizeof(char) * 100);
+	char* temp = (char*)malloc(sizeof(char) * 128);
 
 	while ( count < length - 1)
 	{
@@ -65,8 +65,6 @@ char* substring(char part[], int start, int end) {
 void printall(const char *json, jsmntok_t *t, int tokcount) {
 
 	int i;
-
-
 
 	for ( i = 1 ; i < tokcount ; i++ ) {
 
@@ -85,9 +83,17 @@ int findkeys(const char* json, jsmntok_t *t, int tokcount, int* key ) {
 
 	for ( i = 1 ; i < tokcount ; i++ ) {
 
-		if ( t[i].type != 0) {
+		if ( t[i].type == 0) {
+				i += t[i+1].size + 1;
+		}else if( t[i].type == 1) {
+				i += t[i+1].size + 1;
+		}else if( t[i].type == 2) {
+				i += t[i+1].size + 1;
+		}else if ( t[i].type == 3) {
 				count++;
-				key[count] = i;
+				i += t[i+1].size + 1;
+		}else if ( t[i].type == 4) {
+			i++;
 		}
 
 	}
@@ -98,20 +104,29 @@ int findkeys(const char* json, jsmntok_t *t, int tokcount, int* key ) {
 void printkeys(const char* json, jsmntok_t *t, int tokcount) {
 
 	int i = 0;
-	int count = 0;
+	int count = 1;
 
 	for ( i = 1 ; i < tokcount ; i++ ) {
 
-		if ( t[i].type != 0) {
-				count++;
-				printf("[%d] %s(%d)\n", i, substring(json, t[i].start, t[i].end), count);
+		if ( t[i].type == 0) {
+				i += t[i+1].size + 1;
+		}else if( t[i].type == 1) {
+				i += t[i+1].size + 1;
+		}else if( t[i].type == 2) {
+				i += t[i+1].size + 1;
+		}else if ( t[i].type == 3) {
+			printf("[%d] %s(%d)\n", count++, substring(json, t[i].start, t[i].end), i);
+			i += t[i+1].size + 1;
+		}else if ( t[i].type == 4) {
+			i++;
 		}
 
 	}
 
 	return;
 }
-int main() {
+
+int main(int argc, char* argv[]) {
 	int i;
 	int r;
 	int tokcount = 0;
@@ -120,8 +135,14 @@ int main() {
 	jsmn_init(&p);
 
 	int keyarray[128], keyamount;
+	char *JSON_STRING;
 
-	char* JSON_STRING = readjsonfile("data.json");
+	// File selected read
+	if (argc == 1)
+		JSON_STRING = readjsonfile("data.json");
+	else
+		JSON_STRING = readjsonfile(argv[1]);
+
 	printf("-----------Lab 1 Read Json File--------------\n");
 
 	r = jsmn_parse(&p, JSON_STRING, strlen(JSON_STRING), t, sizeof(t)/sizeof(t[0]));
@@ -140,12 +161,22 @@ int main() {
 	for (i = 1; i < r; i++) {
 		if (jsoneq(JSON_STRING, &t[i], "name") == 0) {
 			/* We may use strndup() to fetch string value */
-			printf("- User: %.*s\n", t[i+1].end-t[i+1].start,
+			printf("- name: %.*s\n", t[i+1].end-t[i+1].start,
 					JSON_STRING + t[i+1].start);
 			i++;
 		} else if (jsoneq(JSON_STRING, &t[i], "keywords") == 0) {
 			/* We may additionally check if the value is either "true" or "false" */
 			printf("- keywords: %.*s\n", t[i+1].end-t[i+1].start,
+					JSON_STRING + t[i+1].start);
+			i++;
+		}else if (jsoneq(JSON_STRING, &t[i], "price") == 0) {
+			/* We may additionally check if the value is either "true" or "false" */
+			printf("- price: %.*s\n", t[i+1].end-t[i+1].start,
+					JSON_STRING + t[i+1].start);
+			i++;
+		}else if (jsoneq(JSON_STRING, &t[i], "brand") == 0) {
+			/* We may additionally check if the value is either "true" or "false" */
+			printf("- brand: %.*s\n", t[i+1].end-t[i+1].start,
 					JSON_STRING + t[i+1].start);
 			i++;
 		} else if (jsoneq(JSON_STRING, &t[i], "description") == 0) {
@@ -161,6 +192,11 @@ int main() {
 		} else if (jsoneq(JSON_STRING, &t[i], "url") == 0) {
 			/* We may want to do strtol() here to get numeric value */
 			printf("- url: %.*s\n", t[i+1].end-t[i+1].start,
+					JSON_STRING + t[i+1].start);
+			i++;
+		}else if (jsoneq(JSON_STRING, &t[i], "type") == 0) {
+			/* We may want to do strtol() here to get numeric value */
+			printf("- type: %.*s\n", t[i+1].end-t[i+1].start,
 					JSON_STRING + t[i+1].start);
 			i++;
 		} else if (jsoneq(JSON_STRING, &t[i], "frameworks") == 0) {
@@ -201,20 +237,26 @@ int main() {
 				printf("  * %.*s\n", g->end - g->start, JSON_STRING + g->start);
 			}
 			i += t[i+1].size + 1;
-		} else {
-			printf("Unexpected key: %.*s\n", t[i].end-t[i].start,
-					JSON_STRING + t[i].start);
+		}else if (jsoneq(JSON_STRING, &t[i], "spec") == 0) {
+			int j;
+			printf("- spec:\n");
+			if (t[i+1].type != JSMN_OBJECT) {
+				continue; /* We expect groups to be an array of strings */
+			}
+			for (j = 0; j < t[i+1].size; j++) {
+				jsmntok_t *g = &t[i+j+2];
+				printf("  * %.*s\n", g->end - g->start, JSON_STRING + g->start);
+			}
+			i += t[i+1].size + 1;
 		}
-
-		tokcount++;
 
 	}
 	printf("---------------Lab 2 Print All--------------------\n");
-	printall( JSON_STRING, t, tokcount);
+	printall( JSON_STRING, t, r);
 	printf("--------------Lab 3 Print All keys----------------\n");
-	printkeys( JSON_STRING, t, tokcount);
+	printkeys( JSON_STRING, t, r);
 	printf("-----------Lab 4 Print All keyamount--------------\n");
-	keyamount = findkeys(JSON_STRING, t, tokcount, keyarray);
+	keyamount = findkeys(JSON_STRING, t, r, keyarray);
 	printf("keyamount: %d\n", keyamount);
 
 

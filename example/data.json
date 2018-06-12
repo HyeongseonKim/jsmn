@@ -6,6 +6,6 @@ resource-limited or embedded projects", "repository":
 {
 "type": "git",
 "url": "https://github.com/zserge/jsmn.git" },
-"frameworks": "*", "platforms": "*", "examples": [
-"example/*.c" ],
+"frameworks": "*", "platforms": "*", "examples":[
+"example/*.c"],
 "exclude": "test" }
